@@ -157,7 +157,8 @@
     infoClose.addEventListener('click', () => infoModal.classList.remove('is-open'));
     infoModal.addEventListener('click', (e) => { if (e.target === infoModal) infoModal.classList.remove('is-open'); });
 
-    const map = L.map('map').setView([43.7769, 11.2561], 8); // Centro Italia
+    const map = L.map('map', { zoomControl: false }).setView([43.7769, 11.2561], 8); // Centro Italia
+    L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
     const zoomOverlay = document.getElementById('zoom-overlay');
     const zoomOverlayMsg = document.getElementById('zoom-overlay-msg');
