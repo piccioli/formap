@@ -173,7 +173,7 @@
     infoClose.addEventListener('click', () => infoModal.classList.remove('is-open'));
     infoModal.addEventListener('click', (e) => { if (e.target === infoModal) infoModal.classList.remove('is-open'); });
 
-    const map = L.map('map', { zoomControl: false }).setView([43.7769, 11.2561], 8); // Centro Italia
+    const map = L.map('map', { zoomControl: false, minZoom: CONFIG.min_zoom, maxZoom: CONFIG.max_zoom }).setView(CONFIG.start_center, CONFIG.start_zoom);
     L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
     const zoomOverlay = document.getElementById('zoom-overlay');
@@ -182,7 +182,7 @@
 
     function updateZoomOverlay() {
       const zoom = map.getZoom();
-      zoomOverlay.classList.toggle('is-hidden', zoom >= CONFIG.min_zoom);
+      zoomOverlay.classList.toggle('is-hidden', zoom >= CONFIG.click_zoom);
     }
     map.on('zoomend', updateZoomOverlay);
     updateZoomOverlay();
@@ -204,12 +204,12 @@
 
     L.tileLayer('https://api.webmapp.it/tiles/{z}/{x}/{y}.png', {
       attribution: '&copy; Webmapp',
-      maxZoom: 18,
-      minZoom: 1,
+      maxZoom: CONFIG.max_zoom,
+      minZoom: CONFIG.min_zoom,
     }).addTo(map);
 
     map.on('click', async (e) => {
-      if (map.getZoom() < CONFIG.min_zoom) return;
+      if (map.getZoom() < CONFIG.click_zoom) return;
       const { lat, lng } = e.latlng;
       const popup = L.popup()
         .setLatLng(e.latlng)
