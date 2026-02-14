@@ -115,6 +115,21 @@
       font-size: 14px;
     }
     .info-modal-close:hover { background: #555; }
+    .debug-popup {
+      display: none;
+      position: fixed;
+      top: 56px;
+      right: 16px;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 13px;
+      z-index: 1500;
+      pointer-events: none;
+    }
+    .debug-popup.is-visible { display: block; }
   </style>
 </head>
 <body>
@@ -133,6 +148,7 @@
       <button type="button" class="info-modal-close" id="info-modal-close">Chiudi</button>
     </div>
   </div>
+  <div id="debug-popup" class="debug-popup">Zoom: <span id="debug-zoom"></span></div>
   <div class="map-container">
     <div id="map"></div>
     <div id="zoom-overlay" class="zoom-overlay">
@@ -170,6 +186,21 @@
     }
     map.on('zoomend', updateZoomOverlay);
     updateZoomOverlay();
+
+    const debugPopup = document.getElementById('debug-popup');
+    const debugZoom = document.getElementById('debug-zoom');
+    function updateDebugPopup() {
+      if (CONFIG.debug) {
+        debugPopup.classList.add('is-visible');
+        debugZoom.textContent = map.getZoom();
+      } else {
+        debugPopup.classList.remove('is-visible');
+      }
+    }
+    if (CONFIG.debug) {
+      map.on('zoomend', updateDebugPopup);
+      updateDebugPopup();
+    }
 
     L.tileLayer('https://api.webmapp.it/tiles/{z}/{x}/{y}.png', {
       attribution: '&copy; Webmapp',
