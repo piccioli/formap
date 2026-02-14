@@ -22,7 +22,26 @@
       gap: 10px;
     }
     .header-logo { height: 32px; width: auto; vertical-align: middle; }
-    #map { width: 100vw; height: calc(100vh - 48px); margin-top: 48px; }
+    .map-container { position: relative; width: 100vw; height: calc(100vh - 48px); margin-top: 48px; }
+    #map { width: 100%; height: 100%; }
+    .zoom-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      pointer-events: auto;
+    }
+    .zoom-overlay.is-hidden { display: none; }
+    .zoom-overlay-msg {
+      background: rgba(255,255,255,0.5);
+      padding: 24px 32px;
+      border-radius: 10px;
+      text-align: center;
+      max-width: 420px;
+      font-size: 1.05rem;
+    }
     .coord-popup { font-family: 'SF Mono', Monaco, monospace; font-size: 13px; }
     .loader {
       display: inline-block;
@@ -114,7 +133,12 @@
       <button type="button" class="info-modal-close" id="info-modal-close">Chiudi</button>
     </div>
   </div>
-  <div id="map"></div>
+  <div class="map-container">
+    <div id="map"></div>
+    <div id="zoom-overlay" class="zoom-overlay">
+      <div class="zoom-overlay-msg" id="zoom-overlay-msg"></div>
+    </div>
+  </div>
 
   <script src="config.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -135,6 +159,17 @@
 
     const map = L.map('map').setView([43.7769, 11.2561], 8); // Centro Italia
 
+    const zoomOverlay = document.getElementById('zoom-overlay');
+    const zoomOverlayMsg = document.getElementById('zoom-overlay-msg');
+    zoomOverlayMsg.textContent = CONFIG.zoom_message;
+
+    function updateZoomOverlay() {
+      const zoom = map.getZoom();
+      zoomOverlay.classList.toggle('is-hidden', zoom >= CONFIG.min_zoom);
+    }
+    map.on('zoomend', updateZoomOverlay);
+    updateZoomOverlay();
+
     L.tileLayer('https://api.webmapp.it/tiles/{z}/{x}/{y}.png', {
       attribution: '&copy; Webmapp',
       maxZoom: 18,
@@ -142,6 +177,7 @@
     }).addTo(map);
 
     map.on('click', async (e) => {
+      if (map.getZoom() < CONFIG.min_zoom) return;
       const { lat, lng } = e.latlng;
       const popup = L.popup()
         .setLatLng(e.latlng)
