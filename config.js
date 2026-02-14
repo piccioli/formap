@@ -1,7 +1,7 @@
 const CONFIG = {
 
   // Se true, mostra in alto a destra il livello di zoom corrente
-  debug: true,
+  debug: false,
 
   // Titolo dell'applicazione (header e popup informazioni)
   title: "Form di accreditamento per i punti tappa del Sentiero Italia CAI",
@@ -17,7 +17,7 @@ const CONFIG = {
   // Zoom minimo richiesto per attivare il click sulla mappa (selezione punto tappa)
   click_zoom: 14,
   // Livello massimo di zoom (quanto si può avvicinare la vista)
-  max_zoom: 17,
+  max_zoom: 16,
 
   // Messaggio mostrato al centro della mappa quando lo zoom è inferiore a click_zoom
   zoom_message: "Ingrandisci la mappa usando il pulsante \"+\" per selezionare la posizione del punto tappa",
