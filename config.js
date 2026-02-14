@@ -1,11 +1,25 @@
 const CONFIG = {
-  title: "Form di accreditamento per i punti tappa del Sentiero Italia CAI",
-  description: "Applicazione per la gestione e l'accreditamento dei punti tappa del Sentiero Italia CAI. Clicca sulla mappa per visualizzare le coordinate e le informazioni geografiche del punto selezionato tramite Nominatim.",
-  min_zoom: 6,
-  start_center: [43.7769, 11.2561], // [lat, lng] - Centro Italia
-  start_zoom: 8,
-  click_zoom: 14,
-  max_zoom: 17,
-  zoom_message: "Ingrandisci la mappa usando il pulsante \"+\" per selezionare la posizione del punto tappa",
+
+  // Se true, mostra in alto a destra il livello di zoom corrente
   debug: true,
+
+  // Titolo dell'applicazione (header e popup informazioni)
+  title: "Form di accreditamento per i punti tappa del Sentiero Italia CAI",
+  // Descrizione mostrata nel popup informazioni (icona ℹ)
+  description: "Applicazione per la gestione e l'accreditamento dei punti tappa del Sentiero Italia CAI. Clicca sulla mappa per visualizzare le coordinate e le informazioni geografiche del punto selezionato tramite Nominatim.",
+
+  // Centro iniziale della mappa [latitudine, longitudine]
+  start_center: [43.7769, 11.2561],
+  // Livello minimo di zoom (quanto si può allontanare la vista)
+  min_zoom: 6,
+  // Livello di zoom al caricamento della mappa
+  start_zoom: 8,
+  // Zoom minimo richiesto per attivare il click sulla mappa (selezione punto tappa)
+  click_zoom: 14,
+  // Livello massimo di zoom (quanto si può avvicinare la vista)
+  max_zoom: 17,
+
+  // Messaggio mostrato al centro della mappa quando lo zoom è inferiore a click_zoom
+  zoom_message: "Ingrandisci la mappa usando il pulsante \"+\" per selezionare la posizione del punto tappa",
+
 };
