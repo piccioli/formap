@@ -245,9 +245,7 @@
         if (CONFIG.debug) {
           debugNominatim.textContent = jsonStr;
         }
-        const popupHtml = CONFIG.debug
-          ? `<div class="coord-popup"><strong>Lat:</strong> ${lat.toFixed(6)}<br><strong>Lng:</strong> ${lng.toFixed(6)}</div>`
-          : `<div class="coord-popup"><strong>Latitudine:</strong> ${lat.toFixed(6)}<br><strong>Longitudine:</strong> ${lng.toFixed(6)}<div class="nominatim-json">${escapeHtml(jsonStr)}</div></div>`;
+        const popupHtml = `<div class="coord-popup"><strong>Latitudine:</strong> ${lat.toFixed(6)}<br><strong>Longitudine:</strong> ${lng.toFixed(6)}</div>`;
         popup.setContent(popupHtml);
       } catch (err) {
         if (CONFIG.debug) debugNominatim.textContent = 'Errore: ' + err.message;
