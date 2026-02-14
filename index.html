@@ -42,7 +42,9 @@
       max-width: 420px;
       font-size: 1.05rem;
     }
-    .coord-popup { font-family: 'SF Mono', Monaco, monospace; font-size: 13px; }
+    .coord-popup { font-family: system-ui, sans-serif; font-size: 13px; }
+    .coord-popup h3 { margin: 0 0 10px 0; font-size: 14px; }
+    .coord-popup p { margin: 4px 0; line-height: 1.4; }
     .loader {
       display: inline-block;
       width: 20px;
@@ -245,7 +247,17 @@
         if (CONFIG.debug) {
           debugNominatim.textContent = jsonStr;
         }
-        const popupHtml = `<div class="coord-popup"><strong>Latitudine:</strong> ${lat.toFixed(6)}<br><strong>Longitudine:</strong> ${lng.toFixed(6)}</div>`;
+        const addr = json.address || {};
+        const comune = addr.city || addr.town || addr.village || addr.municipality || '-';
+        const popupHtml = `<div class="coord-popup">
+          <h3>Punto selezionato</h3>
+          <p><strong>Paese:</strong> ${escapeHtml(addr.country || '-')}</p>
+          <p><strong>Regione:</strong> ${escapeHtml(addr.state || '-')}</p>
+          <p><strong>Provincia:</strong> ${escapeHtml(addr.county || '-')}</p>
+          <p><strong>Comune:</strong> ${escapeHtml(comune)}</p>
+          <p><strong>Indirizzo completo:</strong> ${escapeHtml(json.display_name || '-')}</p>
+          <p><strong>Coordinate:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</p>
+        </div>`;
         popup.setContent(popupHtml);
       } catch (err) {
         if (CONFIG.debug) debugNominatim.textContent = 'Errore: ' + err.message;
