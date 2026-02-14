@@ -120,16 +120,25 @@
       position: fixed;
       top: 56px;
       right: 16px;
-      padding: 8px 12px;
-      background: rgba(0,0,0,0.7);
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.85);
       color: #fff;
       border-radius: 4px;
       font-family: monospace;
-      font-size: 13px;
+      font-size: 12px;
       z-index: 1500;
       pointer-events: none;
+      max-width: 400px;
+      max-height: 70vh;
+      overflow: auto;
     }
     .debug-popup.is-visible { display: block; }
+    .debug-popup-zoom { margin-bottom: 8px; }
+    .debug-popup-json {
+      font-size: 10px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
   </style>
 </head>
 <body>
@@ -148,7 +157,10 @@
       <button type="button" class="info-modal-close" id="info-modal-close">Chiudi</button>
     </div>
   </div>
-  <div id="debug-popup" class="debug-popup">Zoom: <span id="debug-zoom"></span></div>
+  <div id="debug-popup" class="debug-popup">
+    <div class="debug-popup-zoom">Zoom: <span id="debug-zoom"></span></div>
+    <div class="debug-popup-json" id="debug-nominatim"></div>
+  </div>
   <div class="map-container">
     <div id="map"></div>
     <div id="zoom-overlay" class="zoom-overlay">
@@ -189,6 +201,7 @@
 
     const debugPopup = document.getElementById('debug-popup');
     const debugZoom = document.getElementById('debug-zoom');
+    const debugNominatim = document.getElementById('debug-nominatim');
     function updateDebugPopup() {
       if (CONFIG.debug) {
         debugPopup.classList.add('is-visible');
@@ -211,6 +224,7 @@
     map.on('click', async (e) => {
       if (map.getZoom() < CONFIG.click_zoom) return;
       const { lat, lng } = e.latlng;
+      if (CONFIG.debug) debugNominatim.textContent = 'Caricamento...';
       const popup = L.popup()
         .setLatLng(e.latlng)
         .setContent(
@@ -226,15 +240,17 @@
           headers: { 'User-Agent': 'WebappSICAI/1.0' },
         });
         const json = await res.json();
+        const jsonStr = JSON.stringify(json, null, 2);
 
-        const html =
-          `<div class="coord-popup">
-            <strong>Latitudine:</strong> ${lat.toFixed(6)}<br>
-            <strong>Longitudine:</strong> ${lng.toFixed(6)}
-            <div class="nominatim-json">${escapeHtml(JSON.stringify(json, null, 2))}</div>
-          </div>`;
-        popup.setContent(html);
+        if (CONFIG.debug) {
+          debugNominatim.textContent = jsonStr;
+        }
+        const popupHtml = CONFIG.debug
+          ? `<div class="coord-popup"><strong>Lat:</strong> ${lat.toFixed(6)}<br><strong>Lng:</strong> ${lng.toFixed(6)}</div>`
+          : `<div class="coord-popup"><strong>Latitudine:</strong> ${lat.toFixed(6)}<br><strong>Longitudine:</strong> ${lng.toFixed(6)}<div class="nominatim-json">${escapeHtml(jsonStr)}</div></div>`;
+        popup.setContent(popupHtml);
       } catch (err) {
+        if (CONFIG.debug) debugNominatim.textContent = 'Errore: ' + err.message;
         popup.setContent(
           `<div class="coord-popup">
             <strong>Latitudine:</strong> ${lat.toFixed(6)}<br>
