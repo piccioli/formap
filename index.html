@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mappa Interattiva</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; }
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 16px;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-logo { height: 32px; width: auto; vertical-align: middle; }
+    #map { width: 100vw; height: calc(100vh - 48px); margin-top: 48px; }
+    .coord-popup { font-family: 'SF Mono', Monaco, monospace; font-size: 13px; }
+    .loader {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #ddd;
+      border-top-color: #333;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .nominatim-json {
+      margin-top: 10px;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 4px;
+      font-size: 11px;
+      max-height: 200px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .info-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid #ccc;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      transition: background 0.2s;
+    }
+    .info-btn:hover { background: #f0f0f0; }
+    .info-btn-right { margin-left: auto; }
+    .info-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .info-modal.is-open { display: flex; }
+    .info-modal-box {
+      background: #fff;
+      border-radius: 8px;
+      padding: 24px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .info-modal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .info-modal h2 { margin: 0; font-size: 1.25rem; }
+    .info-modal-logo { height: 32px; width: auto; }
+    .info-modal p { line-height: 1.5; color: #444; }
+    .info-modal-close {
+      margin-top: 16px;
+      padding: 8px 16px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .info-modal-close:hover { background: #555; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <img src="logo.png" alt="Logo" class="header-logo">
+    <span id="app-title"></span>
+    <button type="button" class="info-btn info-btn-right" id="info-btn" aria-label="Informazioni">ℹ</button>
+  </header>
+  <div id="info-modal" class="info-modal" role="dialog" aria-labelledby="info-modal-title">
+    <div class="info-modal-box">
+      <div class="info-modal-header">
+        <img src="logo.png" alt="" class="info-modal-logo">
+        <h2 id="info-modal-title"></h2>
+      </div>
+      <p id="info-modal-desc"></p>
+      <button type="button" class="info-modal-close" id="info-modal-close">Chiudi</button>
+    </div>
+  </div>
+  <div id="map"></div>
+
+  <script src="config.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    document.getElementById('app-title').textContent = CONFIG.title;
+
+    const infoModal = document.getElementById('info-modal');
+    const infoBtn = document.getElementById('info-btn');
+    const infoClose = document.getElementById('info-modal-close');
+
+    infoBtn.addEventListener('click', () => {
+      document.getElementById('info-modal-title').textContent = CONFIG.title;
+      document.getElementById('info-modal-desc').textContent = CONFIG.description;
+      infoModal.classList.add('is-open');
+    });
+    infoClose.addEventListener('click', () => infoModal.classList.remove('is-open'));
+    infoModal.addEventListener('click', (e) => { if (e.target === infoModal) infoModal.classList.remove('is-open'); });
+
+    const map = L.map('map').setView([43.7769, 11.2561], 8); // Centro Italia
+
+    L.tileLayer('https://api.webmapp.it/tiles/{z}/{x}/{y}.png', {
+      attribution: '&copy; Webmapp',
+      maxZoom: 18,
+      minZoom: 1,
+    }).addTo(map);
+
+    map.on('click', async (e) => {
+      const { lat, lng } = e.latlng;
+      const popup = L.popup()
+        .setLatLng(e.latlng)
+        .setContent(
+          '<div class="coord-popup">' +
+            '<div class="loader"></div> Caricamento Nominatim...' +
+          '</div>'
+        )
+        .openOn(map);
+
+      try {
+        const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`;
+        const res = await fetch(url, {
+          headers: { 'User-Agent': 'WebappSICAI/1.0' },
+        });
+        const json = await res.json();
+
+        const html =
+          `<div class="coord-popup">
+            <strong>Latitudine:</strong> ${lat.toFixed(6)}<br>
+            <strong>Longitudine:</strong> ${lng.toFixed(6)}
+            <div class="nominatim-json">${escapeHtml(JSON.stringify(json, null, 2))}</div>
+          </div>`;
+        popup.setContent(html);
+      } catch (err) {
+        popup.setContent(
+          `<div class="coord-popup">
+            <strong>Latitudine:</strong> ${lat.toFixed(6)}<br>
+            <strong>Longitudine:</strong> ${lng.toFixed(6)}<br>
+            <span style="color:#c00;">Errore Nominatim: ${escapeHtml(err.message)}</span>
+          </div>`
+        );
+      }
+    });
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
