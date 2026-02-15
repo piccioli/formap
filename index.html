@@ -46,10 +46,12 @@
         d.body.appendChild(s);
       }
       load('config.js?t=' + Date.now(), function () {
+        load('code/version.js', function () {
         load('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', function () {
           load('code/nominatim.js', function () {
             load('code/main.js', function () {});
           });
+        });
         });
       });
     })();

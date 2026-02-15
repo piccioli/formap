@@ -26,7 +26,7 @@ const Nominatim = (function () {
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
         const res = await fetch(url, {
-          headers: { 'User-Agent': `${CONFIG.appName}/${CONFIG.version}` },
+          headers: { 'User-Agent': `${CONFIG.appName}/${APP_VERSION}` },
         });
         const json = await res.json();
         const jsonStr = JSON.stringify(json, null, 2);

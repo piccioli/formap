@@ -9,7 +9,7 @@ infoBtn.addEventListener('click', () => {
   document.getElementById('info-modal-title').textContent = CONFIG.title;
   document.getElementById('info-modal-desc').textContent = CONFIG.description;
   document.getElementById('info-modal-software').innerHTML =
-    `<strong>${CONFIG.appName}</strong> v${CONFIG.version}<br>Data versione: ${CONFIG.versionDate}<br>Licenza: <a href="LICENSE" target="_blank" rel="noopener">${CONFIG.license}</a>`;
+    `<strong>${CONFIG.appName}</strong> v${APP_VERSION}<br>Data versione: ${APP_VERSION_DATE}<br>Licenza: <a href="LICENSE" target="_blank" rel="noopener">${APP_LICENSE}</a>`;
   infoModal.classList.add('is-open');
 });
 infoClose.addEventListener('click', () => infoModal.classList.remove('is-open'));
