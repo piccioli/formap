@@ -95,11 +95,11 @@ fetch(geojsonUrl)
   });
 
 /**
- * Restituisce i nomi delle tappe le cui geometrie ricadono entro il cerchio.
+ * Restituisce i sicai_ref delle tappe le cui geometrie ricadono entro il cerchio.
  * @param {number} centerLat - Latitudine centro cerchio
  * @param {number} centerLng - Longitudine centro cerchio
  * @param {number} radiusM - Raggio in metri
- * @returns {string[]} Array di nomi tappe (unici, ordinati)
+ * @returns {string[]} Array di sicai_ref (unici, ordinati)
  */
 function getTappeInCircle(centerLat, centerLng, radiusM) {
   const center = L.latLng(centerLat, centerLng);
@@ -120,8 +120,9 @@ function getTappeInCircle(centerLat, centerLng, radiusM) {
       const lat = p[1];
       const lng = p[0];
       if (center.distanceTo(L.latLng(lat, lng)) <= radiusM) {
-        const name = feat.properties && feat.properties.name;
-        if (name) names.add(name);
+        const props = feat.properties || {};
+        const ref = props.sicai_ref || props.name;
+        if (ref) names.add(ref);
         break;
       }
     }
