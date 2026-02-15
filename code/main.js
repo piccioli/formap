@@ -1,0 +1,140 @@
+document.getElementById('app-title').textContent = CONFIG.title;
+
+const infoModal = document.getElementById('info-modal');
+const infoBtn = document.getElementById('info-btn');
+const infoClose = document.getElementById('info-modal-close');
+
+infoBtn.addEventListener('click', () => {
+  document.getElementById('info-modal-title').textContent = CONFIG.title;
+  document.getElementById('info-modal-desc').textContent = CONFIG.description;
+  document.getElementById('info-modal-software').innerHTML =
+    `<strong>${CONFIG.appName}</strong> v${CONFIG.version}<br>Data versione: ${CONFIG.versionDate}<br>Licenza: <a href="LICENSE" target="_blank" rel="noopener">${CONFIG.license}</a>`;
+  infoModal.classList.add('is-open');
+});
+infoClose.addEventListener('click', () => infoModal.classList.remove('is-open'));
+infoModal.addEventListener('click', (e) => { if (e.target === infoModal) infoModal.classList.remove('is-open'); });
+
+const map = L.map('map', { zoomControl: false, minZoom: CONFIG.min_zoom, maxZoom: CONFIG.max_zoom }).setView(CONFIG.start_center, CONFIG.start_zoom);
+L.control.zoom({ position: 'bottomleft' }).addTo(map);
+
+const zoomOverlay = document.getElementById('zoom-overlay');
+const zoomOverlayMsg = document.getElementById('zoom-overlay-msg');
+zoomOverlayMsg.textContent = CONFIG.zoom_message;
+
+function updateZoomOverlay() {
+  const zoom = map.getZoom();
+  zoomOverlay.classList.toggle('is-hidden', zoom >= CONFIG.click_zoom);
+}
+map.on('zoomend', updateZoomOverlay);
+updateZoomOverlay();
+
+const debugPopup = document.getElementById('debug-popup');
+const debugZoom = document.getElementById('debug-zoom');
+const debugNominatim = document.getElementById('debug-nominatim');
+function updateDebugPopup() {
+  if (CONFIG.debug) {
+    debugPopup.classList.add('is-visible');
+    debugZoom.textContent = map.getZoom();
+  } else {
+    debugPopup.classList.remove('is-visible');
+  }
+}
+if (CONFIG.debug) {
+  map.on('zoomend', updateDebugPopup);
+  updateDebugPopup();
+}
+
+L.tileLayer('https://api.webmapp.it/tiles/{z}/{x}/{y}.png', {
+  attribution: '&copy; Webmapp',
+  maxZoom: CONFIG.max_zoom,
+  minZoom: CONFIG.min_zoom,
+}).addTo(map);
+
+// Caricamento GeoJSON all'avvio (percorso da root per Docker/nginx)
+let geoJsonLayer = null;
+const geojsonStatus = document.getElementById('geojson-status');
+geojsonStatus.textContent = 'Caricamento sentiero… (file grande, attendere)';
+const geojsonUrl = new URL('DATA/data.geojson', window.location.href).href + '?t=' + Date.now();
+fetch(geojsonUrl)
+  .then((res) => {
+    if (!res.ok) throw new Error('File non trovato: ' + res.status + ' – hai fatto rebuild? docker compose up -d --build');
+    return res.json();
+  })
+  .then((geojson) => {
+    const features = geojson && geojson.features ? geojson.features : [];
+    if (features.length === 0) throw new Error('GeoJSON senza features');
+    geoJsonLayer = L.geoJSON(geojson, {
+      style: {
+        color: '#0066cc',
+        weight: 4,
+        opacity: 1,
+      },
+    }).addTo(map);
+    geoJsonLayer.bringToFront();
+    if (geoJsonLayer.getBounds().isValid()) {
+      map.fitBounds(geoJsonLayer.getBounds(), { padding: [20, 20], maxZoom: 10 });
+    }
+    geojsonStatus.textContent = 'Sentiero caricato (' + features.length + ' tratti)';
+    geojsonStatus.classList.remove('error');
+    setTimeout(() => geojsonStatus.classList.add('is-hidden'), 3000);
+  })
+  .catch((err) => {
+    geojsonStatus.textContent = 'Errore: ' + (err.message || 'caricamento sentiero fallito');
+    geojsonStatus.classList.add('error');
+    console.warn('Caricamento data.geojson fallito:', err);
+    setTimeout(() => geojsonStatus.classList.add('is-hidden'), 8000);
+  });
+
+map.on('click', async (e) => {
+  if (map.getZoom() < CONFIG.click_zoom) return;
+  const { lat, lng } = e.latlng;
+  if (CONFIG.debug) debugNominatim.textContent = 'Caricamento...';
+  const popup = L.popup()
+    .setLatLng(e.latlng)
+    .setContent(
+      '<div class="coord-popup">' +
+        '<div class="loader"></div> Caricamento Nominatim...' +
+      '</div>'
+    )
+    .openOn(map);
+
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`;
+    const res = await fetch(url, {
+      headers: { 'User-Agent': `${CONFIG.appName}/${CONFIG.version}` },
+    });
+    const json = await res.json();
+    const jsonStr = JSON.stringify(json, null, 2);
+
+    if (CONFIG.debug) {
+      debugNominatim.textContent = jsonStr;
+    }
+    const addr = json.address || {};
+    const comune = addr.city || addr.town || addr.village || addr.municipality || '-';
+    const popupHtml = `<div class="coord-popup">
+      <h3>Punto selezionato</h3>
+      <p><strong>Paese:</strong> ${escapeHtml(addr.country || '-')}</p>
+      <p><strong>Regione:</strong> ${escapeHtml(addr.state || '-')}</p>
+      <p><strong>Provincia:</strong> ${escapeHtml(addr.county || '-')}</p>
+      <p><strong>Comune:</strong> ${escapeHtml(comune)}</p>
+      <p><strong>Indirizzo completo:</strong> ${escapeHtml(json.display_name || '-')}</p>
+      <p><strong>Coordinate:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</p>
+    </div>`;
+    popup.setContent(popupHtml);
+  } catch (err) {
+    if (CONFIG.debug) debugNominatim.textContent = 'Errore: ' + err.message;
+    popup.setContent(
+      `<div class="coord-popup">
+        <strong>Latitudine:</strong> ${lat.toFixed(6)}<br>
+        <strong>Longitudine:</strong> ${lng.toFixed(6)}<br>
+        <span style="color:#c00;">Errore Nominatim: ${escapeHtml(err.message)}</span>
+      </div>`
+    );
+  }
+});
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
