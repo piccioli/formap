@@ -99,42 +99,11 @@ map.on('click', async (e) => {
     .openOn(map);
 
   try {
-    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': `${CONFIG.appName}/${CONFIG.version}` },
-    });
-    const json = await res.json();
-    const jsonStr = JSON.stringify(json, null, 2);
-
-    if (CONFIG.debug) {
-      debugNominatim.textContent = jsonStr;
-    }
-    const addr = json.address || {};
-    const comune = addr.city || addr.town || addr.village || addr.municipality || '-';
-    const popupHtml = `<div class="coord-popup">
-      <h3>Punto selezionato</h3>
-      <p><strong>Paese:</strong> ${escapeHtml(addr.country || '-')}</p>
-      <p><strong>Regione:</strong> ${escapeHtml(addr.state || '-')}</p>
-      <p><strong>Provincia:</strong> ${escapeHtml(addr.county || '-')}</p>
-      <p><strong>Comune:</strong> ${escapeHtml(comune)}</p>
-      <p><strong>Indirizzo completo:</strong> ${escapeHtml(json.display_name || '-')}</p>
-      <p><strong>Coordinate:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</p>
-    </div>`;
+    const { popupHtml, jsonStr } = await Nominatim.fetchReverseGeocode(lat, lng);
+    if (CONFIG.debug) debugNominatim.textContent = jsonStr;
     popup.setContent(popupHtml);
   } catch (err) {
     if (CONFIG.debug) debugNominatim.textContent = 'Errore: ' + err.message;
-    popup.setContent(
-      `<div class="coord-popup">
-        <strong>Latitudine:</strong> ${lat.toFixed(6)}<br>
-        <strong>Longitudine:</strong> ${lng.toFixed(6)}<br>
-        <span style="color:#c00;">Errore Nominatim: ${escapeHtml(err.message)}</span>
-      </div>`
-    );
+    popup.setContent(Nominatim.formatErrorHtml(lat, lng, err));
   }
 });
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
