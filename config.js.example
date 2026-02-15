@@ -31,4 +31,9 @@ const CONFIG = {
   // Messaggio mostrato al centro della mappa quando lo zoom è inferiore a click_zoom
   zoom_message: "Ingrandisci la mappa usando il pulsante \"+\" per selezionare la posizione del punto tappa",
 
+  // Stile del sentiero (data.geojson)
+  geojson_color: "#cc0000",
+  geojson_weight: 4,
+  geojson_opacity: 1,
+
 };

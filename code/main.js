@@ -66,11 +66,14 @@ fetch(geojsonUrl)
   .then((geojson) => {
     const features = geojson && geojson.features ? geojson.features : [];
     if (features.length === 0) throw new Error('GeoJSON senza features');
+    const geojsonColor = CONFIG.geojson_color || '#0066cc';
+    const geojsonWeight = Number(CONFIG.geojson_weight);
+    const geojsonOpacity = Number(CONFIG.geojson_opacity);
     geoJsonLayer = L.geoJSON(geojson, {
       style: {
-        color: '#0066cc',
-        weight: 4,
-        opacity: 1,
+        color: geojsonColor,
+        weight: (geojsonWeight > 0 ? geojsonWeight : 4),
+        opacity: (geojsonOpacity >= 0 && geojsonOpacity <= 1 ? geojsonOpacity : 1),
       },
     }).addTo(map);
     geoJsonLayer.bringToFront();
