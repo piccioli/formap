@@ -5,7 +5,7 @@ const CONFIG = {
   // Data della versione (formato YYYY-MM-DD)
   versionDate: "2025-02-15",
   // Nome dell'app per User-Agent e identificazione esterna
-  appName: "WebappSICAI",
+  appName: "XX",
   // Licenza del software (es. MIT, Apache-2.0)
   license: "MIT",
 
@@ -24,7 +24,7 @@ const CONFIG = {
   // Livello di zoom al caricamento della mappa
   start_zoom: 8,
   // Zoom minimo richiesto per attivare il click sulla mappa (selezione punto tappa)
-  click_zoom: 10,
+  click_zoom: 8,
   // Livello massimo di zoom (quanto si può avvicinare la vista)
   max_zoom: 16,
 

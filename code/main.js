@@ -15,6 +15,8 @@ infoBtn.addEventListener('click', () => {
 infoClose.addEventListener('click', () => infoModal.classList.remove('is-open'));
 infoModal.addEventListener('click', (e) => { if (e.target === infoModal) infoModal.classList.remove('is-open'); });
 
+const clickZoom = Number(CONFIG.click_zoom) || 14;
+
 const map = L.map('map', { zoomControl: false, minZoom: CONFIG.min_zoom, maxZoom: CONFIG.max_zoom }).setView(CONFIG.start_center, CONFIG.start_zoom);
 L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
@@ -23,8 +25,8 @@ const zoomOverlayMsg = document.getElementById('zoom-overlay-msg');
 zoomOverlayMsg.textContent = CONFIG.zoom_message;
 
 function updateZoomOverlay() {
-  const zoom = map.getZoom();
-  zoomOverlay.classList.toggle('is-hidden', zoom >= CONFIG.click_zoom);
+  const zoom = Math.floor(map.getZoom());
+  zoomOverlay.classList.toggle('is-hidden', zoom >= clickZoom);
 }
 map.on('zoomend', updateZoomOverlay);
 updateZoomOverlay();
@@ -67,7 +69,7 @@ fetch(geojsonUrl)
     }).addTo(map);
     geoJsonLayer.bringToFront();
     if (geoJsonLayer.getBounds().isValid()) {
-      map.fitBounds(geoJsonLayer.getBounds(), { padding: [20, 20], maxZoom: 10 });
+      map.fitBounds(geoJsonLayer.getBounds(), { padding: [20, 20], maxZoom: clickZoom });
     }
     geojsonStatus.textContent = 'Sentiero caricato (' + features.length + ' tratti)';
     geojsonStatus.classList.remove('error');
@@ -81,7 +83,7 @@ fetch(geojsonUrl)
   });
 
 map.on('click', async (e) => {
-  if (map.getZoom() < CONFIG.click_zoom) return;
+  if (Math.floor(map.getZoom()) < clickZoom) return;
   const { lat, lng } = e.latlng;
   if (CONFIG.debug) debugNominatim.textContent = 'Caricamento...';
   const popup = L.popup()
