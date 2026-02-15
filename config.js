@@ -10,7 +10,7 @@ const CONFIG = {
   license: "MIT",
 
   // Se true, mostra in alto a destra il livello di zoom corrente
-  debug: true,
+  debug: false,
 
   // Titolo dell'applicazione (header e popup informazioni)
   title: "Form di accreditamento per i punti tappa del Sentiero Italia CAI",
