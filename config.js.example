@@ -19,8 +19,10 @@ const CONFIG = {
   start_zoom: 8,
   // Zoom minimo richiesto per attivare il click sulla mappa (selezione punto tappa)
   click_zoom: 8,
-  // Raggio in pixel del cerchio che appare al click sul punto selezionato
-  click_circle_radius: 80,
+  // Raggio in km del cerchio che appare al click sul punto selezionato
+  click_circle_radius: 5,
+  // URL base del Typeform per accreditamento (se presente, mostra bottone "Prosegui Accreditamento" nel popup)
+  typeform_url: "https://form.typeform.com/to/tOtxePQT",
   // Colore del cerchio (sfondo e bordo) (es. "#0066cc")
   click_circle_color: "#0066cc",
   // Trasparenza dello sfondo del cerchio (0 = trasparente, 1 = opaco)

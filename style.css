@@ -37,6 +37,33 @@ body { font-family: system-ui, -apple-system, sans-serif; }
 .coord-popup { font-family: system-ui, sans-serif; font-size: 13px; }
 .coord-popup h3 { margin: 0 0 10px 0; font-size: 14px; }
 .coord-popup p { margin: 4px 0; line-height: 1.4; }
+.coord-popup-typeform { margin-top: 12px; padding-top: 10px; border-top: 1px solid #e8e8e8; }
+.typeform-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: default;
+  border: none;
+}
+.typeform-btn--active {
+  background: #0066cc;
+  color: #fff !important;
+  cursor: pointer;
+}
+.typeform-btn--active:hover { background: #0052a3; color: #fff; }
+.typeform-btn--disabled {
+  background: #ccc;
+  color: #666;
+}
+.typeform-btn-hint {
+  margin: 8px 0 0 0 !important;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
 .loader {
   display: inline-block;
   width: 20px;

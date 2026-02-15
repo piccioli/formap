@@ -165,23 +165,52 @@ map.on('click', async (e) => {
     return '<p><strong>Tappe:</strong> ' + content + '</p>';
   }
 
+  function buildTypeformButtonHtml(addr, lat, lng, tappe) {
+    if (!CONFIG.typeform_url) return '';
+    var radius = clickCircleRadiusKm;
+    var hasTappe = tappe && tappe.length > 0;
+    var comune = (addr && (addr.city || addr.town || addr.village || addr.municipality)) || '-';
+    var regione = (addr && addr.state) || '-';
+    var paese = (addr && addr.country) || '-';
+    var provincia = (addr && addr.county) || '-';
+    var indirizzoCompleto = (addr && addr.display_name) || '-';
+    var coordinate = lat.toFixed(6) + ',' + lng.toFixed(6);
+    var tappeStr = hasTappe ? tappe.join(',') : '';
+    var params = 'regione=' + encodeURIComponent(regione) +
+      '&paese=' + encodeURIComponent(paese) +
+      '&provincia=' + encodeURIComponent(provincia) +
+      '&comune=' + encodeURIComponent(comune) +
+      '&indirizzo_completo=' + encodeURIComponent(indirizzoCompleto) +
+      '&coordinate=' + encodeURIComponent(coordinate) +
+      '&tappe=' + encodeURIComponent(tappeStr);
+    var url = CONFIG.typeform_url + '#' + params;
+    if (hasTappe) {
+      return '<div class="coord-popup-typeform"><a href="' + url + '" target="_blank" rel="noopener" class="typeform-btn typeform-btn--active">Prosegui Accreditamento</a></div>';
+    }
+    return '<div class="coord-popup-typeform"><span class="typeform-btn typeform-btn--disabled" title="Per poter procedere con l\'accreditamento devi selezionare un punto che sia nel raggio di ' + radius + ' km">Prosegui Accreditamento</span><p class="typeform-btn-hint">Per poter procedere con l\'accreditamento devi selezionare un punto che sia nel raggio di ' + radius + ' km</p></div>';
+  }
+
   try {
-    const { popupHtml, jsonStr } = await Nominatim.fetchReverseGeocode(lat, lng);
+    const { popupHtml, json, jsonStr } = await Nominatim.fetchReverseGeocode(lat, lng);
     if (CONFIG.debug) debugNominatim.textContent = jsonStr;
     const tappe = getTappeInCircle(lat, lng, clickCircleRadiusKm * 1000);
     const tappeHtml = formatTappeContent(tappe);
+    var typeformHtml = buildTypeformButtonHtml(json && json.address ? { ...json.address, display_name: json.display_name } : null, lat, lng, tappe);
     const insertPos = popupHtml.lastIndexOf('</div>');
+    var contentToInsert = tappeHtml + typeformHtml;
     const finalHtml = insertPos >= 0
-      ? popupHtml.slice(0, insertPos) + tappeHtml + popupHtml.slice(insertPos)
-      : popupHtml + tappeHtml;
+      ? popupHtml.slice(0, insertPos) + contentToInsert + popupHtml.slice(insertPos)
+      : popupHtml + contentToInsert;
     popup.setContent(finalHtml);
   } catch (err) {
     if (CONFIG.debug) debugNominatim.textContent = 'Errore: ' + err.message;
     let errHtml = Nominatim.formatErrorHtml(lat, lng, err);
     const tappe = getTappeInCircle(lat, lng, clickCircleRadiusKm * 1000);
     const tappeHtml = formatTappeContent(tappe);
+    var typeformHtml = buildTypeformButtonHtml(null, lat, lng, tappe);
     const insertPos = errHtml.lastIndexOf('</div>');
-    errHtml = insertPos >= 0 ? errHtml.slice(0, insertPos) + tappeHtml + errHtml.slice(insertPos) : errHtml + tappeHtml;
+    var contentToInsert = tappeHtml + typeformHtml;
+    errHtml = insertPos >= 0 ? errHtml.slice(0, insertPos) + contentToInsert + errHtml.slice(insertPos) : errHtml + contentToInsert;
     popup.setContent(errHtml);
   }
 });
