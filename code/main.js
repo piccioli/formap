@@ -16,7 +16,7 @@ infoClose.addEventListener('click', () => infoModal.classList.remove('is-open'))
 infoModal.addEventListener('click', (e) => { if (e.target === infoModal) infoModal.classList.remove('is-open'); });
 
 const clickZoom = Number(CONFIG.click_zoom) || 14;
-const clickCircleRadius = Number(CONFIG.click_circle_radius) || 80;
+const clickCircleRadiusKm = Number(CONFIG.click_circle_radius) || 2;
 const clickCircleColor = CONFIG.click_circle_color || '#0066cc';
 const clickCircleFillOpacity = Number(CONFIG.click_circle_fill_opacity);
 const clickCircleFillOpacityNorm = (clickCircleFillOpacity >= 0 && clickCircleFillOpacity <= 1) ? clickCircleFillOpacity : 0.2;
@@ -96,8 +96,8 @@ map.on('click', async (e) => {
   const { lat, lng } = e.latlng;
 
   if (clickCircle) map.removeLayer(clickCircle);
-  clickCircle = L.circleMarker(e.latlng, {
-    radius: clickCircleRadius,
+  clickCircle = L.circle(e.latlng, {
+    radius: clickCircleRadiusKm * 1000,
     fillColor: clickCircleColor,
     fillOpacity: clickCircleFillOpacityNorm,
     color: clickCircleColor,
