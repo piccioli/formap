@@ -1,7 +1,7 @@
 const CONFIG = {
 
   // Versione del software
-  version: "1.1.0",
+  version: "1.2.0",
   // Data della versione (formato YYYY-MM-DD)
   versionDate: "2025-02-15",
   // Nome dell'app per User-Agent e identificazione esterna
