@@ -1,6 +1,7 @@
 services:
   webapp:
     build: .
-    ports:
-      - "8080:80"
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    # Esposto solo in localhost per essere usato dal reverse proxy Apache

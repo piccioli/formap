@@ -68,19 +68,30 @@ Modifica `config.js` per adattare titolo, centro mappa, livelli di zoom, messagg
    docker run -d -p 80:80 --name webapp-sicai --restart unless-stopped webapp-sicai
    ```
 
-### Opzione 3: Dietro reverse proxy (produzione con HTTPS)
+### Opzione 3: Produzione con HTTPS (sicai-accreditamento.montagnaservizi.it)
 
-Per servire l'app dietro Nginx, Traefik o Caddy (HTTPS, dominio custom):
+Su questa macchina l'app è esposta in HTTPS tramite Apache come reverse proxy.
 
-1. Esegui il container sulla rete interna (es. porta 80 interna)
-2. Configura il reverse proxy per inoltrare le richieste al container
+1. **Avvia i container** (webapp in ascolto solo su 127.0.0.1:8080):
+   ```bash
+   docker-compose up -d
+   ```
 
-Esempio con Caddy:
-```caddyfile
-mappa.tuodominio.it {
-    reverse_proxy localhost:8080
-}
-```
+2. **Apache** è già configurato con il vhost per `sicai-accreditamento.montagnaservizi.it` (configurazione in `apache/`). Il sito è raggiungibile su:
+   - **https://sicai-accreditamento.montagnaservizi.it** (certificato autofirmato; il browser mostrerà un avviso la prima volta).
+
+3. **Passaggio a Let's Encrypt** (quando il DNS del dominio risolve pubblicamente):
+   ```bash
+   # Aggiorna la config Apache per usare i path Let's Encrypt, poi:
+   certbot certonly --webroot -w /var/www/acme-sicai -d sicai-accreditamento.montagnaservizi.it
+   # Sostituisci in apache/sicai-accreditamento.montagnaservizi.it.conf:
+   #   SSLCertificateFile /etc/letsencrypt/live/sicai-accreditamento.montagnaservizi.it/fullchain.pem
+   #   SSLCertificateKeyFile /etc/letsencrypt/live/sicai-accreditamento.montagnaservizi.it/privkey.pem
+   sudo cp apache/sicai-accreditamento.montagnaservizi.it.conf /etc/apache2/sites-available/
+   sudo systemctl reload apache2
+   ```
+
+Per altri domini o server, usa un reverse proxy (Nginx, Traefik, Caddy) che inoltri le richieste al container (es. `localhost:8080`).
 
 ## Sviluppo locale
 
