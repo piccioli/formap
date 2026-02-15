@@ -56,6 +56,7 @@ L.tileLayer('https://api.webmapp.it/tiles/{z}/{x}/{y}.png', {
 
 // Caricamento GeoJSON all'avvio (percorso da root per Docker/nginx)
 let geoJsonLayer = null;
+let geojsonFeatures = [];
 const geojsonStatus = document.getElementById('geojson-status');
 geojsonStatus.textContent = 'Caricamento sentiero… (file grande, attendere)';
 const geojsonUrl = new URL('DATA/data.geojson', window.location.href).href + '?t=' + Date.now();
@@ -67,6 +68,7 @@ fetch(geojsonUrl)
   .then((geojson) => {
     const features = geojson && geojson.features ? geojson.features : [];
     if (features.length === 0) throw new Error('GeoJSON senza features');
+    geojsonFeatures = features;
     const geojsonColor = CONFIG.geojson_color || '#0066cc';
     const geojsonWeight = Number(CONFIG.geojson_weight);
     const geojsonOpacity = Number(CONFIG.geojson_opacity);
@@ -91,6 +93,41 @@ fetch(geojsonUrl)
     console.warn('Caricamento data.geojson fallito:', err);
     setTimeout(() => geojsonStatus.classList.add('is-hidden'), 8000);
   });
+
+/**
+ * Restituisce i nomi delle tappe le cui geometrie ricadono entro il cerchio.
+ * @param {number} centerLat - Latitudine centro cerchio
+ * @param {number} centerLng - Longitudine centro cerchio
+ * @param {number} radiusM - Raggio in metri
+ * @returns {string[]} Array di nomi tappe (unici, ordinati)
+ */
+function getTappeInCircle(centerLat, centerLng, radiusM) {
+  const center = L.latLng(centerLat, centerLng);
+  const names = new Set();
+
+  function coordsToPoints(coords) {
+    if (!Array.isArray(coords) || coords.length === 0) return [];
+    if (typeof coords[0] === 'number') return [coords]; // Point
+    if (typeof coords[0][0] === 'number') return coords; // LineString
+    return coords.flat(); // MultiLineString
+  }
+
+  for (const feat of geojsonFeatures) {
+    const geom = feat.geometry;
+    if (!geom || !geom.coordinates) continue;
+    const points = coordsToPoints(geom.coordinates);
+    for (const p of points) {
+      const lat = p[1];
+      const lng = p[0];
+      if (center.distanceTo(L.latLng(lat, lng)) <= radiusM) {
+        const name = feat.properties && feat.properties.name;
+        if (name) names.add(name);
+        break;
+      }
+    }
+  }
+  return Array.from(names).sort();
+}
 
 map.on('click', async (e) => {
   if (Math.floor(map.getZoom()) < clickZoom) return;
@@ -120,12 +157,30 @@ map.on('click', async (e) => {
     clickCircle = null;
   });
 
+  function formatTappeContent(tappe) {
+    var content = tappe.length > 0
+      ? tappe.map(function (n) { var d = document.createElement('div'); d.textContent = n; return d.innerHTML; }).join(', ')
+      : 'nessuna tappa';
+    return '<p><strong>Tappe:</strong> ' + content + '</p>';
+  }
+
   try {
     const { popupHtml, jsonStr } = await Nominatim.fetchReverseGeocode(lat, lng);
     if (CONFIG.debug) debugNominatim.textContent = jsonStr;
-    popup.setContent(popupHtml);
+    const tappe = getTappeInCircle(lat, lng, clickCircleRadiusKm * 1000);
+    const tappeHtml = formatTappeContent(tappe);
+    const insertPos = popupHtml.lastIndexOf('</div>');
+    const finalHtml = insertPos >= 0
+      ? popupHtml.slice(0, insertPos) + tappeHtml + popupHtml.slice(insertPos)
+      : popupHtml + tappeHtml;
+    popup.setContent(finalHtml);
   } catch (err) {
     if (CONFIG.debug) debugNominatim.textContent = 'Errore: ' + err.message;
-    popup.setContent(Nominatim.formatErrorHtml(lat, lng, err));
+    let errHtml = Nominatim.formatErrorHtml(lat, lng, err);
+    const tappe = getTappeInCircle(lat, lng, clickCircleRadiusKm * 1000);
+    const tappeHtml = formatTappeContent(tappe);
+    const insertPos = errHtml.lastIndexOf('</div>');
+    errHtml = insertPos >= 0 ? errHtml.slice(0, insertPos) + tappeHtml + errHtml.slice(insertPos) : errHtml + tappeHtml;
+    popup.setContent(errHtml);
   }
 });
