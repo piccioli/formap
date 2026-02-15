@@ -152,6 +152,21 @@
       white-space: pre-wrap;
       word-break: break-all;
     }
+    .geojson-status {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      background: rgba(0,0,0,0.75);
+      color: #fff;
+      border-radius: 6px;
+      font-size: 14px;
+      z-index: 600;
+      transition: opacity 0.3s;
+    }
+    .geojson-status.is-hidden { display: none; }
+    .geojson-status.error { background: rgba(180,0,0,0.9); }
   </style>
 </head>
 <body>
@@ -177,6 +192,7 @@
   </div>
   <div class="map-container">
     <div id="map"></div>
+    <div id="geojson-status" class="geojson-status">Caricamento sentiero…</div>
     <div id="zoom-overlay" class="zoom-overlay">
       <div class="zoom-overlay-msg" id="zoom-overlay-msg"></div>
     </div>
@@ -236,6 +252,41 @@
       maxZoom: CONFIG.max_zoom,
       minZoom: CONFIG.min_zoom,
     }).addTo(map);
+
+    // Caricamento GeoJSON all'avvio (percorso da root per Docker/nginx)
+    let geoJsonLayer = null;
+    const geojsonStatus = document.getElementById('geojson-status');
+    geojsonStatus.textContent = 'Caricamento sentiero… (file grande, attendere)';
+    const geojsonUrl = new URL('DATA/data.geojson', window.location.href).href + '?t=' + Date.now();
+    fetch(geojsonUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error('File non trovato: ' + res.status + ' – hai fatto rebuild? docker compose up -d --build');
+        return res.json();
+      })
+      .then((geojson) => {
+        const features = geojson && geojson.features ? geojson.features : [];
+        if (features.length === 0) throw new Error('GeoJSON senza features');
+        geoJsonLayer = L.geoJSON(geojson, {
+          style: {
+            color: '#0066cc',
+            weight: 4,
+            opacity: 1,
+          },
+        }).addTo(map);
+        geoJsonLayer.bringToFront();
+        if (geoJsonLayer.getBounds().isValid()) {
+          map.fitBounds(geoJsonLayer.getBounds(), { padding: [20, 20], maxZoom: 10 });
+        }
+        geojsonStatus.textContent = 'Sentiero caricato (' + features.length + ' tratti)';
+        geojsonStatus.classList.remove('error');
+        setTimeout(() => geojsonStatus.classList.add('is-hidden'), 3000);
+      })
+      .catch((err) => {
+        geojsonStatus.textContent = 'Errore: ' + (err.message || 'caricamento sentiero fallito');
+        geojsonStatus.classList.add('error');
+        console.warn('Caricamento data.geojson fallito:', err);
+        setTimeout(() => geojsonStatus.classList.add('is-hidden'), 8000);
+      });
 
     map.on('click', async (e) => {
       if (map.getZoom() < CONFIG.click_zoom) return;
