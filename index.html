@@ -106,6 +106,17 @@
     .info-modal h2 { margin: 0; font-size: 1.25rem; }
     .info-modal-logo { height: 32px; width: auto; }
     .info-modal p { line-height: 1.5; color: #444; }
+    .info-modal-software {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e0e0e0;
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+    }
+    .info-modal-software strong { color: #444; }
+    .info-modal-software a { color: #0066cc; text-decoration: none; }
+    .info-modal-software a:hover { text-decoration: underline; }
     .info-modal-close {
       margin-top: 16px;
       padding: 8px 16px;
@@ -156,6 +167,7 @@
         <h2 id="info-modal-title"></h2>
       </div>
       <p id="info-modal-desc"></p>
+      <div id="info-modal-software" class="info-modal-software"></div>
       <button type="button" class="info-modal-close" id="info-modal-close">Chiudi</button>
     </div>
   </div>
@@ -182,6 +194,8 @@
     infoBtn.addEventListener('click', () => {
       document.getElementById('info-modal-title').textContent = CONFIG.title;
       document.getElementById('info-modal-desc').textContent = CONFIG.description;
+      document.getElementById('info-modal-software').innerHTML =
+        `<strong>${CONFIG.appName}</strong> v${CONFIG.version}<br>Data versione: ${CONFIG.versionDate}<br>Licenza: <a href="LICENSE" target="_blank" rel="noopener">${CONFIG.license}</a>`;
       infoModal.classList.add('is-open');
     });
     infoClose.addEventListener('click', () => infoModal.classList.remove('is-open'));
@@ -239,7 +253,7 @@
       try {
         const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`;
         const res = await fetch(url, {
-          headers: { 'User-Agent': 'WebappSICAI/1.0' },
+          headers: { 'User-Agent': `${CONFIG.appName}/${CONFIG.version}` },
         });
         const json = await res.json();
         const jsonStr = JSON.stringify(json, null, 2);
