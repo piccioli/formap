@@ -11,23 +11,29 @@ const Nominatim = (function () {
     return div.innerHTML;
   }
 
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY_MS = 1000;
+
   /**
-   * Effettua reverse geocoding per lat/lng.
+   * Effettua reverse geocoding per lat/lng, con retry fino a 3 tentativi.
    * @param {number} lat - Latitudine
    * @param {number} lng - Longitudine
    * @returns {Promise<{ popupHtml: string, json: object, jsonStr: string }>}
    */
   async function fetchReverseGeocode(lat, lng) {
     const url = `${BASE_URL}?lat=${lat}&lon=${lng}&format=json`;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': `${CONFIG.appName}/${CONFIG.version}` },
-    });
-    const json = await res.json();
-    const jsonStr = JSON.stringify(json, null, 2);
+    let lastError;
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const res = await fetch(url, {
+          headers: { 'User-Agent': `${CONFIG.appName}/${CONFIG.version}` },
+        });
+        const json = await res.json();
+        const jsonStr = JSON.stringify(json, null, 2);
 
-    const addr = json.address || {};
-    const comune = addr.city || addr.town || addr.village || addr.municipality || '-';
-    const popupHtml = `<div class="coord-popup">
+        const addr = json.address || {};
+        const comune = addr.city || addr.town || addr.village || addr.municipality || '-';
+        const popupHtml = `<div class="coord-popup">
       <h3>Punto selezionato</h3>
       <p><strong>Paese:</strong> ${escapeHtml(addr.country || '-')}</p>
       <p><strong>Regione:</strong> ${escapeHtml(addr.state || '-')}</p>
@@ -37,7 +43,15 @@ const Nominatim = (function () {
       <p><strong>Coordinate:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</p>
     </div>`;
 
-    return { popupHtml, json, jsonStr };
+        return { popupHtml, json, jsonStr };
+      } catch (err) {
+        lastError = err;
+        if (attempt < MAX_RETRIES) {
+          await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+        }
+      }
+    }
+    throw lastError;
   }
 
   /**

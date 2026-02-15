@@ -1,4 +1,5 @@
 document.getElementById('app-title').textContent = CONFIG.title;
+if (CONFIG.debug) document.body.classList.add('debug');
 
 const infoModal = document.getElementById('info-modal');
 const infoBtn = document.getElementById('info-btn');
@@ -28,16 +29,10 @@ function updateZoomOverlay() {
 map.on('zoomend', updateZoomOverlay);
 updateZoomOverlay();
 
-const debugPopup = document.getElementById('debug-popup');
 const debugZoom = document.getElementById('debug-zoom');
 const debugNominatim = document.getElementById('debug-nominatim');
 function updateDebugPopup() {
-  if (CONFIG.debug) {
-    debugPopup.classList.add('is-visible');
-    debugZoom.textContent = map.getZoom();
-  } else {
-    debugPopup.classList.remove('is-visible');
-  }
+  if (CONFIG.debug) debugZoom.textContent = map.getZoom();
 }
 if (CONFIG.debug) {
   map.on('zoomend', updateDebugPopup);
