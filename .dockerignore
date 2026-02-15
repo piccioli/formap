@@ -1,0 +1,14 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# OS
+.DS_Store
+
+# Documentazione e file di sviluppo (opzionale, riduce contesto di build)
+*.md
