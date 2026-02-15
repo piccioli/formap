@@ -5,12 +5,12 @@ const CONFIG = {
   // Data della versione (formato YYYY-MM-DD)
   versionDate: "2025-02-15",
   // Nome dell'app per User-Agent e identificazione esterna
-  appName: "SICAIPuntiTappaForm",
+  appName: "WebappSICAI",
   // Licenza del software (es. MIT, Apache-2.0)
   license: "MIT",
 
   // Se true, mostra in alto a destra il livello di zoom corrente
-  debug: true,
+  debug: false,
 
   // Titolo dell'applicazione (header e popup informazioni)
   title: "Form di accreditamento per i punti tappa del Sentiero Italia CAI",

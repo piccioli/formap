@@ -1,1 +1,4 @@
 .DS_Store
+
+# Configurazione locale (creare a partire da config.js.example)
+config.js

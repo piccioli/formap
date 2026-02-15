@@ -14,7 +14,17 @@ L'applicazione offre:
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/) (opzionale, consigliato)
 
-## Installazione in produzione
+## Installazione
+
+### File di configurazione
+
+Il file `config.js` non è versionato. **Prima di avviare l'applicazione** (in locale o con Docker) crea la configurazione a partire dall'esempio:
+
+```bash
+cp config.js.example config.js
+```
+
+Modifica `config.js` per adattare titolo, centro mappa, livelli di zoom, messaggi, ecc. L'immagine Docker viene costruita con i valori di default di `config.js.example`. Per usare la tua configurazione in produzione puoi montare il tuo `config.js` come volume (es. `-v $(pwd)/config.js:/usr/share/nginx/html/config.js`).
 
 ### Opzione 1: Docker Compose (consigliato)
 
@@ -24,29 +34,36 @@ L'applicazione offre:
    cd webapp-sicai
    ```
 
-2. Modifica la porta in `docker-compose.yml` se necessario (default: 8080):
+2. Crea il file di configurazione (vedi sopra):
+   ```bash
+   cp config.js.example config.js
+   ```
+
+3. Modifica la porta in `docker-compose.yml` se necessario (default: 8080):
    ```yaml
    ports:
      - "80:80"   # per usare la porta 80 standard
    ```
 
-3. Avvia il container:
+4. Avvia il container:
    ```bash
    docker compose up -d
    ```
 
-4. L'applicazione sarà raggiungibile su `http://<indirizzo-server>:<porta>`
+5. L'applicazione sarà raggiungibile su `http://<indirizzo-server>:<porta>`
 
 ### Opzione 2: Build e run con Docker
 
-1. Clona o scarica il repository sul server
+1. Clona o scarica il repository sul server.
 
-2. Costruisci l'immagine:
+2. Crea il file di configurazione: `cp config.js.example config.js`
+
+3. Costruisci l'immagine:
    ```bash
    docker build -t webapp-sicai .
    ```
 
-3. Avvia il container:
+4. Avvia il container:
    ```bash
    docker run -d -p 80:80 --name webapp-sicai --restart unless-stopped webapp-sicai
    ```
@@ -67,6 +84,9 @@ mappa.tuodominio.it {
 
 ## Sviluppo locale
 
+1. Crea la configurazione: `cp config.js.example config.js`
+2. Avvia i container:
+
 ```bash
 docker compose up -d
 ```
@@ -75,7 +95,7 @@ L'applicazione sarà disponibile su [http://localhost:8080](http://localhost:808
 
 ## Configurazione
 
-Le impostazioni (centro mappa, livelli zoom, messaggi) sono modificabili in `config.js`. Dopo aver modificato il file, ricostruisci l'immagine Docker:
+Le impostazioni (centro mappa, livelli zoom, messaggi, titolo, ecc.) si modificano in `config.js`. Dopo aver modificato il file, ricostruisci l'immagine Docker se usi Docker:
 
 ```bash
 docker compose up -d --build
