@@ -19,6 +19,12 @@ const CONFIG = {
   start_zoom: 8,
   // Zoom minimo richiesto per attivare il click sulla mappa (selezione punto tappa)
   click_zoom: 8,
+  // Raggio in pixel del cerchio che appare al click sul punto selezionato
+  click_circle_radius: 80,
+  // Colore del cerchio (sfondo e bordo) (es. "#0066cc")
+  click_circle_color: "#0066cc",
+  // Trasparenza dello sfondo del cerchio (0 = trasparente, 1 = opaco)
+  click_circle_fill_opacity: 0.2,
   // Livello massimo di zoom (quanto si può avvicinare la vista)
   max_zoom: 16,
 

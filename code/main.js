@@ -16,6 +16,12 @@ infoClose.addEventListener('click', () => infoModal.classList.remove('is-open'))
 infoModal.addEventListener('click', (e) => { if (e.target === infoModal) infoModal.classList.remove('is-open'); });
 
 const clickZoom = Number(CONFIG.click_zoom) || 14;
+const clickCircleRadius = Number(CONFIG.click_circle_radius) || 80;
+const clickCircleColor = CONFIG.click_circle_color || '#0066cc';
+const clickCircleFillOpacity = Number(CONFIG.click_circle_fill_opacity);
+const clickCircleFillOpacityNorm = (clickCircleFillOpacity >= 0 && clickCircleFillOpacity <= 1) ? clickCircleFillOpacity : 0.2;
+
+let clickCircle = null;
 
 const map = L.map('map', { zoomControl: false, minZoom: CONFIG.min_zoom, maxZoom: CONFIG.max_zoom }).setView(CONFIG.start_center, CONFIG.start_zoom);
 L.control.zoom({ position: 'bottomleft' }).addTo(map);
@@ -85,6 +91,16 @@ fetch(geojsonUrl)
 map.on('click', async (e) => {
   if (Math.floor(map.getZoom()) < clickZoom) return;
   const { lat, lng } = e.latlng;
+
+  if (clickCircle) map.removeLayer(clickCircle);
+  clickCircle = L.circleMarker(e.latlng, {
+    radius: clickCircleRadius,
+    fillColor: clickCircleColor,
+    fillOpacity: clickCircleFillOpacityNorm,
+    color: clickCircleColor,
+    weight: 2,
+  }).addTo(map);
+
   if (CONFIG.debug) debugNominatim.textContent = 'Caricamento...';
   const popup = L.popup()
     .setLatLng(e.latlng)
@@ -94,6 +110,11 @@ map.on('click', async (e) => {
       '</div>'
     )
     .openOn(map);
+
+  popup.on('remove', () => {
+    if (clickCircle) map.removeLayer(clickCircle);
+    clickCircle = null;
+  });
 
   try {
     const { popupHtml, jsonStr } = await Nominatim.fetchReverseGeocode(lat, lng);
