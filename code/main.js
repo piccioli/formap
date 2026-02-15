@@ -24,7 +24,8 @@ const clickCircleFillOpacityNorm = (clickCircleFillOpacity >= 0 && clickCircleFi
 let clickCircle = null;
 
 const map = L.map('map', { zoomControl: false, minZoom: CONFIG.min_zoom, maxZoom: CONFIG.max_zoom }).setView(CONFIG.start_center, CONFIG.start_zoom);
-L.control.zoom({ position: 'bottomleft' }).addTo(map);
+L.control.zoom({ position: 'bottomright' }).addTo(map);
+L.control.scale({ position: 'bottomright', imperial: false }).addTo(map);
 
 const zoomOverlay = document.getElementById('zoom-overlay');
 const zoomOverlayMsg = document.getElementById('zoom-overlay-msg');
