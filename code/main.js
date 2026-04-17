@@ -48,8 +48,11 @@ if (CONFIG.debug) {
   updateDebugPopup();
 }
 
-L.tileLayer('https://api.webmapp.it/tiles/{z}/{x}/{y}.png', {
-  attribution: '&copy; Webmapp',
+const tileUrl = CONFIG.tile_url || 'https://api.webmapp.it/tiles/{z}/{x}/{y}.png';
+const tileAttribution = CONFIG.tile_attribution || '&copy; CAI &copy; OpenStreetMap';
+
+L.tileLayer(tileUrl, {
+  attribution: tileAttribution,
   maxZoom: CONFIG.max_zoom,
   minZoom: CONFIG.min_zoom,
 }).addTo(map);

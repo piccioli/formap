@@ -30,6 +30,10 @@ const CONFIG = {
   // Livello massimo di zoom (quanto si può avvicinare la vista)
   max_zoom: 16,
 
+  // Basemap tiles (Leaflet)
+  tile_url: "https://api.webmapp.it/tiles/{z}/{x}/{y}.png",
+  tile_attribution: "&copy; CAI &copy; OpenStreetMap",
+
   // Messaggio mostrato al centro della mappa quando lo zoom è inferiore a click_zoom
   zoom_message: "Ingrandisci la mappa usando il pulsante \"+\" per selezionare la posizione del punto tappa",
 
